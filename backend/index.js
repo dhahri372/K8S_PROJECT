@@ -39,7 +39,7 @@ app.get('/api/users', (req, res) => {
     const sqlQuery = 'SELECT * FROM users';
     db.query(sqlQuery, (err, results) => {
         if (err) {
-            console.error("❌ Erreur lors de la lecture DB:", err.message);
+            console.error(" Erreur lors de la lecture DB:", err.message);
             return res.status(500).json({ error: "Erreur Base de données" });
         }
         res.json(results);
@@ -57,7 +57,7 @@ app.post('/api/users', (req, res) => {
     const sqlInsert = 'INSERT INTO users (name, email) VALUES (?, ?)';
     db.query(sqlInsert, [name, email], (err, result) => {
         if (err) {
-            console.error("❌ Erreur lors de l'insertion:", err.message);
+            console.error(" Erreur lors de l'insertion:", err.message);
             return res.status(500).json({ error: "Échec de l'insertion" });
         }
         res.status(201).json({ id: result.insertId, name, email });
