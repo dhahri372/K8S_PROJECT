@@ -12,7 +12,7 @@ spec:
       labels:
         app: mysql
     spec:
-      nodeName: worker1  # C'est bien ici que tu forces le placement sur Worker 1
+      nodeName: worker1 
       containers:
       - name: mysql
         image: mysql:5.7
@@ -23,13 +23,22 @@ spec:
           value: "password"
         - name: MYSQL_DATABASE
           value: "k8s_db"
+        # --- AJOUT DU MONTAGE DU VOLUME DANS LE CONTENEUR ---
+        volumeMounts:
+        - name: mysql-nfs-storage
+          mountPath: /var/lib/mysql
+      # --- DÉFINITION DU VOLUME LIÉ AU PVC ---
+      volumes:
+      - name: mysql-nfs-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc-nfs # Ce nom doit être le même que dans ton nfs-pv.yaml
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
 spec:
-  type: ClusterIP # Uniquement accessible à l'intérieur du cluster (par le backend)
+  type: ClusterIP 
   selector:
     app: mysql
   ports:
