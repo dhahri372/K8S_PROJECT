@@ -1,0 +1,15 @@
+---
+- name: Attendre que le fichier join-command.txt soit disponible
+  wait_for:
+    path: /vagrant/join-command.txt
+    timeout: 300
+
+- name: Lire la commande join depuis le fichier
+  slurp:
+    src: /vagrant/join-command.txt
+  register: join_command
+
+- name: Rejoindre le cluster Kubernetes
+  command: "{{ join_command.content | b64decode }}"
+  args:
+    creates: /etc/kubernetes/kubelet.conf

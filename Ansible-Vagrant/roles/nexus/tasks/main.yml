@@ -1,0 +1,73 @@
+---
+- name: Installer Java
+  apt:
+    name: openjdk-11-jdk
+    state: present
+    update_cache: yes
+
+- name: Créer l'utilisateur nexus
+  user:
+    name: nexus
+    home: /opt/nexus
+    shell: /bin/bash
+    system: yes
+
+- name: Créer dossiers pour Nexus
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: nexus
+    group: nexus
+    mode: '0755'
+  loop:
+    - /opt/nexus
+    - /opt/nexus-data
+
+- name: Télécharger Nexus
+  get_url:
+    url: https://download.sonatype.com/nexus/3/nexus-3.70.1-02-unix.tar.gz
+    dest: /tmp/nexus.tar.gz
+    timeout: 30
+
+- name: Extraire Nexus
+  unarchive:
+    src: /tmp/nexus.tar.gz
+    dest: /opt/nexus
+    remote_src: yes
+    owner: nexus
+    group: nexus
+
+- name: Créer lien symbolique vers current
+  file:
+    src: /opt/nexus/nexus-3.70.1-02
+    dest: /opt/nexus/current
+    state: link
+    owner: nexus
+    group: nexus
+
+- name: Créer service systemd pour Nexus
+  copy:
+    dest: /etc/systemd/system/nexus.service
+    content: |
+      [Unit]
+      Description=Nexus Repository Manager
+      After=network.target
+
+      [Service]
+      Type=forking
+      LimitNOFILE=65536
+      User=nexus
+      Group=nexus
+      ExecStart=/opt/nexus/current/bin/nexus start
+      ExecStop=/opt/nexus/current/bin/nexus stop
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Démarrer et activer Nexus
+  systemd:
+    name: nexus
+    state: started
+    enabled: yes
+    daemon_reload: yes

@@ -1,0 +1,47 @@
+---
+- name: Désactiver le swap immédiatement
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Désactiver le swap dans /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\sswap\s.*)$'
+    replace: '# \1'
+
+- name: Installer les dépendances système
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Charger les modules kernel
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Ajouter les modules au démarrage
+  copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+
+- name: Configurer sysctl
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+    - { name: net.bridge.bridge-nf-call-ip6tables, value: 1 }
+    - { name: net.ipv4.ip_forward, value: 1 }

@@ -1,0 +1,67 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # Passage à Ubuntu 22.04 (plus stable avec VirtualBox)
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.boot_timeout = 900
+
+  # Configuration commune pour éviter les kernel panic
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "off"]
+    vb.customize ["modifyvm", :id, "--largepages", "off"]
+  # À SUPPRIMER OU COMMENTER :
+  # vb.customize ["modifyvm", :id, "--vtxvpid", "off"]
+  # vb.customize ["modifyvm", :id, "--vtxux", "off"]
+  # vb.customize ["modifyvm", :id, "--paravirtprovider", "none"]
+    vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
+  end
+
+  # MASTER
+  config.vm.define "master" do |master|
+    master.vm.hostname = "master"
+    master.vm.network "private_network", ip: "192.168.56.10"
+    master.vm.provider "virtualbox" do |vb|
+      vb.name = "K8s_Master"
+      vb.memory = "4096"
+      vb.cpus = 2
+      vb.gui = false
+    end
+  end
+
+  # WORKER 1
+  config.vm.define "worker1" do |worker|
+    worker.vm.hostname = "worker1"
+    worker.vm.network "private_network", ip: "192.168.56.11"
+    worker.vm.provider "virtualbox" do |vb|
+      vb.name = "K8s_Worker1"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+    end
+  end
+
+  # WORKER 2
+  config.vm.define "worker2" do |worker|
+    worker.vm.hostname = "worker2"
+    worker.vm.network "private_network", ip: "192.168.56.12"
+    worker.vm.provider "virtualbox" do |vb|
+      vb.name = "K8s_Worker2"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+    end
+  end
+
+  # TOOLS
+  config.vm.define "tools" do |tools|
+    tools.vm.hostname = "tools"
+    tools.vm.network "private_network", ip: "192.168.56.20"
+    tools.vm.provider "virtualbox" do |vb|
+      vb.name = "K8s_Tools"
+      vb.memory = "4096"
+      vb.cpus = 2
+      vb.gui = false
+    end
+  end
+end

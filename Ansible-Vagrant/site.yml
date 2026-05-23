@@ -1,0 +1,25 @@
+---
+- name: Configuration commune à toutes les machines
+  hosts: masters:workers
+  become: yes
+  roles:
+    - common
+    - containerd
+
+- name: Configuration Kubernetes commune (Master + Workers)
+  hosts: masters:workers
+  become: yes
+  roles:
+    - kubernetes-common
+
+- name: Configuration spécifique au master
+  hosts: masters
+  become: yes
+  roles:
+    - master
+
+- name: Configuration spécifique aux workers
+  hosts: workers
+  become: yes
+  roles:
+    - worker

@@ -1,0 +1,11 @@
+---
+- name: Setup Tools VM
+  hosts: tools_group
+  become: yes
+
+  roles:
+    - common
+    - docker
+    - nfs
+    - nexus
+    - gitea

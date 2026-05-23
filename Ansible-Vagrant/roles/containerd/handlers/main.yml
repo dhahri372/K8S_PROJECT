@@ -1,0 +1,6 @@
+---
+# Handler pour redémarrer containerd
+- name: restart containerd
+  systemd:
+    name: "{{ containerd_service_name }}"
+    state: restarted

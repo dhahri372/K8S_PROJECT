@@ -1,0 +1,24 @@
+---
+- name: Installer NFS server
+  apt:
+    name: nfs-kernel-server
+    state: present
+    update_cache: yes
+
+- name: Créer le dossier d'export NFS
+  file:
+    path: /srv/nfs/k8s
+    state: directory
+    mode: '0777'
+
+- name: Configurer les exports NFS
+  lineinfile:
+    path: /etc/exports
+    line: "/srv/nfs/k8s *(rw,sync,no_subtree_check,no_root_squash)"
+    create: yes
+
+- name: Démarrer et activer NFS server
+  systemd:
+    name: nfs-kernel-server
+    state: restarted
+    enabled: yes

@@ -1,0 +1,40 @@
+
+---
+- name: Créer dossier pour keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Ajouter la clé Kubernetes
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Ajouter le dépôt Kubernetes
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /
+
+- name: Mettre à jour le cache apt
+  apt:
+    update_cache: yes
+
+- name: Installer kubelet, kubeadm et kubectl
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+
+- name: Bloquer les mises à jour automatiques
+  command: apt-mark hold kubelet kubeadm kubectl
+
+- name: Activer et démarrer kubelet
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started

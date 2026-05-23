@@ -1,0 +1,75 @@
+---
+- name: Créer l'utilisateur git
+  user:
+    name: git
+    home: /home/git
+    shell: /bin/bash
+    system: yes
+
+- name: Télécharger Gitea
+  get_url:
+    url: https://dl.gitea.com/gitea/1.22.0/gitea-1.22.0-linux-amd64
+    dest: /usr/local/bin/gitea
+    mode: '0755'
+    timeout: 30
+
+- name: Créer dossiers pour Gitea
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: git
+    group: git
+    mode: '0755'
+  loop:
+    - /etc/gitea
+    - /home/git/gitea-repositories
+    - /home/git/.ssh
+    - /var/lib/gitea
+    - /var/log/gitea
+
+- name: Créer fichier de configuration Gitea
+  copy:
+    dest: /etc/gitea/app.ini
+    content: |
+      [server]
+      DOMAIN = 192.168.56.20
+      HTTP_PORT = 3000
+      ROOT_URL = http://192.168.56.20:3000/
+      START_SSH_SERVER = false
+
+      [repository]
+      ROOT = /home/git/gitea-repositories
+
+      [database]
+      DB_TYPE = sqlite3
+      PATH = /var/lib/gitea/gitea.db
+    owner: git
+    group: git
+    mode: '0640'
+
+- name: Créer service systemd pour Gitea
+  copy:
+    dest: /etc/systemd/system/gitea.service
+    content: |
+      [Unit]
+      Description=Gitea (Git with a cup of tea)
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=git
+      Group=git
+      WorkingDirectory=/home/git
+      ExecStart=/usr/local/bin/gitea web --config /etc/gitea/app.ini
+      Restart=always
+      Environment=USER=git HOME=/home/git GITEA_WORK_DIR=/home/git
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Démarrer et activer Gitea
+  systemd:
+    name: gitea
+    state: started
+    enabled: yes
+    daemon_reload: yes

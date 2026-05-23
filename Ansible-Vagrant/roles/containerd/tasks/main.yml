@@ -1,0 +1,35 @@
+---
+# Installation et configuration de containerd
+
+- name: Installer containerd
+  apt:
+    name: containerd
+    state: present
+    update_cache: yes
+
+- name: Créer le dossier de configuration de containerd
+  file:
+    path: "{{ containerd_config_path | dirname }}"
+    state: directory
+
+- name: Vérifier si la configuration existe déjà
+  stat:
+    path: "{{ containerd_config_path }}"
+  register: containerd_config
+
+- name: Générer la configuration par défaut si absente
+  shell: containerd config default | tee "{{ containerd_config_path }}"
+  when: not containerd_config.stat.exists
+
+- name: Activer SystemdCgroup dans containerd
+  replace:
+    path: "{{ containerd_config_path }}"
+    regexp: 'SystemdCgroup = false'
+    replace: 'SystemdCgroup = true'
+
+- name: Redémarrer containerd
+  systemd:
+    name: "{{ containerd_service_name }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
