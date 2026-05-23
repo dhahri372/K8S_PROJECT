@@ -17,7 +17,7 @@ function App() {
       <div style={s.sidebar}>
         <div style={s.logo}>💠 CloudShield</div>
         <div style={s.menuItem}>📊 Dashboard</div>
-        <div style={s.menuItemActive}>👥 User Management</div>
+        <div style={s.menuItemActive}> User Management</div>
         <div style={s.menuItem}>⚙️ K8s Settings</div>
       </div>
 
